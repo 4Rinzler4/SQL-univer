@@ -126,3 +126,15 @@ ALTER TABLE hotels ADD CONSTRAINT unique_hotel_email UNIQUE (hotel_email);
 ALTER TABLE bookings DROP CONSTRAINT bookings_room_id_fkey;
 ALTER TABLE bookings ADD CONSTRAINT bookings_room_id_fkey FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL;
 
+-- UNION
+SELECT payment_date AS review_date FROM payments
+UNION
+SELECT check_in_date FROM bookings;
+-- IN
+SELECT NAME FROM hotels
+WHERE id IN (SELECT id FROM users);
+-- NOT IN
+SELECT NAME FROM hotels
+WHERE id NOT IN (SELECT id FROM users);
+-- PRODUCT
+SELECT * FROM hotels, users;
