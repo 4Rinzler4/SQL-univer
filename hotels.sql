@@ -138,3 +138,76 @@ SELECT NAME FROM hotels
 WHERE id NOT IN (SELECT id FROM users);
 -- PRODUCT
 SELECT * FROM hotels, users;
+
+-- 1. Вибір всіх готелів, відсортованих за рейтингом у порядку спадання
+SELECT name, location, rating, description
+FROM hotels
+ORDER BY rating DESC;
+
+-- 2. Вибір доступних номерів у певному готелі, відсортованих за ціною за ніч (зростання)
+SELECT room_number, room_type, price_per_night
+FROM rooms
+WHERE hotel_id = 1 AND availability = TRUE
+ORDER BY price_per_night ASC;
+
+-- 3. Вибір бронювань із даними користувача та номера, відсортованих за датою заїзду (спадання) та статусом
+SELECT b.id, u.name AS user_name, r.room_number, b.check_in_date, b.check_out_date, b.status
+FROM bookings b
+JOIN users u ON b.user_id = u.id
+JOIN rooms r ON b.room_id = r.id
+ORDER BY b.check_in_date DESC, b.status ASC;
+
+-- 4. Вибір готелів із середнім рейтингом відгуків, згрупованих за готелем
+SELECT h.name, h.location, AVG(r.rating) AS average_rating
+FROM hotels h
+LEFT JOIN reviews r ON h.id = r.hotel_id
+GROUP BY h.id, h.name, h.location
+ORDER BY average_rating DESC;
+
+-- 5. Вибір загальної суми платежів за користувачем, згрупованих за користувачем і відсортованих за сумою (спадання)
+SELECT u.name, u.email, SUM(p.amount) AS total_payments
+FROM users u
+JOIN bookings b ON u.id = b.user_id
+JOIN payments p ON b.id = p.booking_id
+GROUP BY u.id, u.name, u.email
+ORDER BY total_payments DESC;
+
+-- 6. Вибір номерів із назвами готелів, відсортованих за назвою готелю (зростання) та ціною (спадання)
+SELECT h.name AS hotel_name, r.room_number, r.room_type, r.price_per_night
+FROM rooms r
+JOIN hotels h ON r.hotel_id = h.id
+ORDER BY h.name ASC, r.price_per_night DESC;
+
+-- 7. Вибір активних бронювань із групуванням за готелем і сортуванням за кількістю бронювань
+SELECT h.name AS hotel_name, COUNT(b.id) AS booking_count
+FROM bookings b
+JOIN rooms r ON b.room_id = r.id
+JOIN hotels h ON r.hotel_id = h.id
+WHERE b.status = 'active'
+GROUP BY h.id, h.name
+ORDER BY booking_count DESC;
+
+-- 8. Вибір користувачів, які залишили відгуки, відсортованих за кількістю відгуків (спадання)
+SELECT u.name, u.email, COUNT(r.id) AS review_count
+FROM users u
+JOIN reviews r ON u.id = r.user_id
+GROUP BY u.id, u.name, u.email
+ORDER BY review_count DESC;
+
+-- 9. Вибір готелів із загальним доходом від оплачених платежів, згрупованих за готелем і відсортованих за доходом
+SELECT h.name, h.location, SUM(p.amount) AS total_revenue
+FROM hotels h
+JOIN rooms r ON h.id = r.hotel_id
+JOIN bookings b ON r.id = b.room_id
+JOIN payments p ON b.id = p.booking_id
+WHERE p.status = 'paid'
+GROUP BY h.id, h.name, h.location
+ORDER BY total_revenue DESC;
+
+-- 10. Вибір номерів із кількістю бронювань за певний період, відсортованих за кількістю бронювань і ціною
+SELECT r.room_number, r.room_type, r.price_per_night, COUNT(b.id) AS booking_count
+FROM rooms r
+LEFT JOIN bookings b ON r.id = b.room_id
+AND b.check_in_date BETWEEN '2025-01-01' AND '2025-12-31'
+GROUP BY r.id, r.room_number, r.room_type, r.price_per_night
+ORDER BY booking_count DESC, r.price_per_night ASC;
