@@ -213,3 +213,43 @@ AND b.check_in_date BETWEEN '2025-01-01' AND '2025-12-31'
 GROUP BY r.id, r.room_number, r.room_type, r.price_per_night
 ORDER BY booking_count DESC, r.price_per_night ASC
 LIMIT 6;
+
+-- 1. Кількість номерів у кожному готелі з середньою ціною за ніч
+SELECT h.name, h.location, COUNT(r.id) AS room_count, ROUND(AVG(r.price_per_night), 2) AS avg_price_per_night
+FROM hotels h
+LEFT JOIN rooms r ON h.id = r.hotel_id
+GROUP BY h.id, h.name, h.location
+ORDER BY room_count DESC;
+
+-- 2. Максимальна та мінімальна ціна за ніч для доступних номерів у кожному готелі
+SELECT h.name, h.location, MAX(r.price_per_night) AS max_price, MIN(r.price_per_night) AS min_price
+FROM hotels h
+JOIN rooms r ON h.id = r.hotel_id
+WHERE r.availability = TRUE
+GROUP BY h.id, h.name, h.location
+HAVING COUNT(r.id) > 0
+ORDER BY max_price DESC;
+
+-- 3. Загальна сума платежів для кожного статусу бронювання
+SELECT b.status, COUNT(b.booking_id) AS booking_count, SUM(p.amount) AS total_payment
+FROM bookings b
+JOIN payments p ON b.booking_id = p.booking_id
+GROUP BY b.status
+ORDER BY total_payment DESC;
+
+-- 4. Середній рейтинг відгуків для кожного готелю з кількістю відгуків
+SELECT h.name, h.location, ROUND(AVG(r.rating), 2) AS avg_rating, COUNT(r.id) AS review_count
+FROM hotels h
+LEFT JOIN reviews r ON h.id = r.hotel_id
+GROUP BY h.id, h.name, h.location
+HAVING COUNT(r.id) > 0
+ORDER BY avg_rating DESC;
+
+-- 5. Кількість бронювань і загальна сума платежів для кожного користувача
+SELECT u.name, u.email, COUNT(b.booking_id) AS booking_count, SUM(p.amount) AS total_paid
+FROM users u
+LEFT JOIN bookings b ON u.id = b.user_id
+LEFT JOIN payments p ON b.booking_id = p.booking_id
+GROUP BY u.id, u.name, u.email
+HAVING SUM(p.amount) IS NOT NULL
+ORDER BY total_paid DESC NULLS LAST;
